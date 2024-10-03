@@ -17,10 +17,10 @@ domainId: 41455
 gasCurrencyCoinGeckoId: aleph-zero
 index:
   from: 1705101
-name: alephzero
+name: alephzero chaine
 nativeToken:
   decimals: 18
-  name: AZERO
+  name: AZERO 
   symbol: AZERO
 protocol: ethereum
 rpcUrls:
