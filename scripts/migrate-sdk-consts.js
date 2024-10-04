@@ -1,31 +1,36 @@
 import fs from 'fs';
+import path from 'path';
 import { stringify } from 'yaml';
 import { chainMetadata, hyperlaneContractAddresses } from '@hyperlane-xyz/sdk';
 
-const LOGO_DIR_PATH = './node_modules/@hyperlane-xyz/sdk/logos/color';
+const LOGO_DIR_PATH = path.join('./node_modules/@hyperlane-xyz/sdk/logos/color');
 const CHAIN_SCHEMA_REF = '# yaml-language-server: $schema=../schema.json';
 
 console.log('Migrating chain data from SDK');
-for (const [name, metadata] of Object.entries(chainMetadata)) {
-  if (name.startsWith('test')) continue;
 
-  const dir = `./chains/${name}`;
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+Object.entries(chainMetadata).forEach(([name, metadata]) => {
+  if (name.startsWith('test')) return;
 
-  let metaYaml = stringify(metadata, { indent: 2 });
-  metaYaml = `${CHAIN_SCHEMA_REF}\n${metaYaml}`;
-  fs.writeFileSync(`${dir}/metadata.yaml`, metaYaml, 'utf8');
+  const chainDir = path.join('./chains', name);
+  if (!fs.existsSync(chainDir)) fs.mkdirSync(chainDir, { recursive: true });
 
+  // Write metadata.yaml
+  const metaYaml = `${CHAIN_SCHEMA_REF}\n${stringify(metadata, { indent: 2 })}`;
+  fs.writeFileSync(path.join(chainDir, 'metadata.yaml'), metaYaml, 'utf8');
+
+  // Write addresses.yaml if addresses exist
   const addresses = hyperlaneContractAddresses[name];
   if (addresses) {
     const addrYaml = stringify(addresses, { indent: 2 });
-    fs.writeFileSync(`${dir}/addresses.yaml`, addrYaml);
+    fs.writeFileSync(path.join(chainDir, 'addresses.yaml'), addrYaml);
   } else {
     console.warn(`No addresses found for chain ${name}`);
   }
 
-  const logoPath = `${LOGO_DIR_PATH}/${name}.svg`;
+  // Copy logo.svg if it exists
+  const logoPath = path.join(LOGO_DIR_PATH, `${name}.svg`);
+  const logoDestPath = path.join(chainDir, 'logo.svg');
   if (fs.existsSync(logoPath)) {
-    fs.copyFileSync(logoPath, `${dir}/logo.svg`);
+    fs.copyFileSync(logoPath, logoDestPath);
   }
-}
+});
